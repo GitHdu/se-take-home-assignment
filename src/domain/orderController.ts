@@ -66,7 +66,7 @@ export function removeNewestBot(state: ControllerState): ControllerState {
   const newestBot = state.bots[state.bots.length - 1];
   const newestBotId = newestBot.id;
   const remainingBots = state.bots.filter((bot) => bot.id !== newestBotId);
-  const returnedOrders = newestBot?.order
+  const returnedOrders = newestBot.order
     ? insertPendingOrder(state.pendingOrders, newestBot.order)
     : state.pendingOrders;
 

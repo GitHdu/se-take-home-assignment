@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import './App.css';
-import { useOrderController } from './hooks/useOrderController';
 import type { Bot, Order } from './domain/orderController';
+import { useOrderController } from './hooks/useOrderController';
+import type { ActivityLogEntry } from './hooks/useOrderController';
+import './App.css';
 
 function orderLabel(order: Order) {
   return `${order.type === 'vip' ? 'VIP' : 'Normal'} Order #${order.id}`;
@@ -11,6 +12,8 @@ function App() {
   const {
     state,
     processingTimeMs,
+    remainingSecondsByBotId,
+    activityLog,
     addNormalOrder,
     addVipOrder,
     addBot,
@@ -28,6 +31,9 @@ function App() {
     };
   }, [state.bots]);
 
+  const hasWaitingOrdersWithoutBots =
+    state.pendingOrders.length > 0 && state.bots.length === 0;
+
   return (
     <main className="app">
       <section className="hero" aria-labelledby="page-title">
@@ -36,7 +42,7 @@ function App() {
         <p className="hero-copy">
           A frontend MVP that keeps all orders in memory, prioritizes VIP orders,
           and lets cooking bots process one order every {processingTimeMs / 1000}{' '}
-          seconds.
+          seconds after pickup.
         </p>
       </section>
 
@@ -59,6 +65,13 @@ function App() {
         <SummaryCard label="Complete" value={state.completedOrders.length} />
       </section>
 
+      {hasWaitingOrdersWithoutBots ? (
+        <p className="notice" role="status">
+          Pending orders wait here until a cooking bot is available. Click “+ Bot”
+          to start the 10-second cooking process.
+        </p>
+      ) : null}
+
       <section className="board" aria-label="Order status board">
         <OrderPanel
           title="PENDING"
@@ -67,7 +80,7 @@ function App() {
           emptyMessage="No pending orders."
         />
 
-        <BotPanel bots={state.bots} />
+        <BotPanel bots={state.bots} remainingSecondsByBotId={remainingSecondsByBotId} />
 
         <OrderPanel
           title="COMPLETE"
@@ -76,6 +89,8 @@ function App() {
           emptyMessage="No completed orders yet."
         />
       </section>
+
+      <ActivityLog entries={activityLog} />
     </main>
   );
 }
@@ -123,9 +138,10 @@ function OrderPanel({ title, description, orders, emptyMessage }: OrderPanelProp
 
 type BotPanelProps = {
   bots: Bot[];
+  remainingSecondsByBotId: Map<number, number>;
 };
 
-function BotPanel({ bots }: BotPanelProps) {
+function BotPanel({ bots, remainingSecondsByBotId }: BotPanelProps) {
   return (
     <article className="panel bot-panel">
       <PanelHeader
@@ -137,19 +153,38 @@ function BotPanel({ bots }: BotPanelProps) {
         <p className="empty-state">No cooking bots. Add one to start processing.</p>
       ) : (
         <ul className="item-list" aria-label="Cooking bots">
-          {bots.map((bot) => (
-            <li className={`bot-card ${bot.status}`} key={bot.id}>
-              <div>
-                <strong>Bot #{bot.id}</strong>
-                <p>{bot.status === 'idle' ? 'IDLE' : 'PROCESSING'}</p>
-              </div>
-              {bot.order ? (
-                <span className={`pill ${bot.order.type}`}>{orderLabel(bot.order)}</span>
-              ) : (
-                <span className="pill idle">Waiting for order</span>
-              )}
-            </li>
-          ))}
+          {bots.map((bot) => {
+            const remainingSeconds = remainingSecondsByBotId.get(bot.id) ?? 0;
+            const progressValue = ((10 - remainingSeconds) / 10) * 100;
+
+            return (
+              <li className={`bot-card ${bot.status}`} key={bot.id}>
+                <div className="bot-card-main">
+                  <div>
+                    <strong>Bot #{bot.id}</strong>
+                    <p>{bot.status === 'idle' ? 'IDLE' : 'PROCESSING'}</p>
+                  </div>
+                  {bot.order ? (
+                    <span className={`pill ${bot.order.type}`}>{orderLabel(bot.order)}</span>
+                  ) : (
+                    <span className="pill idle">Waiting for order</span>
+                  )}
+                </div>
+
+                {bot.order ? (
+                  <div className="countdown" aria-label={`Bot #${bot.id} countdown`}>
+                    <span>{remainingSeconds}s remaining</span>
+                    <div className="progress-track">
+                      <div
+                        className="progress-bar"
+                        style={{ width: `${Math.min(100, Math.max(0, progressValue))}%` }}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
     </article>
@@ -171,6 +206,37 @@ function PanelHeader({ title, description, count }: PanelHeaderProps) {
       </div>
       <span className="count-badge">{count}</span>
     </header>
+  );
+}
+
+type ActivityLogProps = {
+  entries: ActivityLogEntry[];
+};
+
+function ActivityLog({ entries }: ActivityLogProps) {
+  return (
+    <section className="activity-log" aria-labelledby="activity-log-title">
+      <header className="panel-header">
+        <div>
+          <h2 id="activity-log-title">ACTIVITY LOG</h2>
+          <p>Recent state changes for the live demo.</p>
+        </div>
+        <span className="count-badge">{entries.length}</span>
+      </header>
+
+      {entries.length === 0 ? (
+        <p className="empty-state compact">No activity yet. Create an order to begin.</p>
+      ) : (
+        <ol className="log-list" aria-label="Activity log entries">
+          {entries.map((entry) => (
+            <li key={entry.id}>
+              <time>{entry.time}</time>
+              <span>{entry.message}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
   );
 }
 
