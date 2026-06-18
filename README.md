@@ -64,7 +64,6 @@ Deploy the app as a static Vite site.
 
 ## Original Assignment
 
-## FeedMe Software Engineer Take Home Assignment
 Below is a take home assignment before the interview of the position. You are required to
 1. Understand the situation and use case. You may contact the interviewer for further clarification.
 2. implement the requirement with **either frontend or backend components**.

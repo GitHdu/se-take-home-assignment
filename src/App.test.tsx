@@ -18,11 +18,10 @@ describe('App', () => {
     const pendingList = screen.getByRole('list', { name: 'PENDING orders' });
     const items = within(pendingList).getAllByRole('listitem');
 
-    expect(items.map((item) => item.textContent)).toEqual([
-      'VIPVIP Order #3',
-      'NormalNormal Order #1',
-      'NormalNormal Order #2',
-    ]);
+    expect(items).toHaveLength(3);
+    expect(within(items[0]).getByText('VIP Order #3')).toBeInTheDocument();
+    expect(within(items[1]).getByText('Normal Order #1')).toBeInTheDocument();
+    expect(within(items[2]).getByText('Normal Order #2')).toBeInTheDocument();
   });
 
   it('keeps an order pending after 10 seconds when no bot is available', async () => {
