@@ -1,11 +1,11 @@
 FeedMe McDonald's Order Controller - Frontend Prototype
 
-[10:40:38] Frontend MVP verified by build/test scripts.
-[10:40:38] Implementation path: Frontend (Vite + React + TypeScript).
-[10:40:38] Supported actions: New Normal Order, New VIP Order, + Bot, - Bot.
-[10:40:38] Supported flow: PENDING -> PROCESSING by cooking bot -> COMPLETE after 10 seconds.
-[10:40:38] VIP priority: VIP orders queue before normal orders while keeping FIFO order within each type.
-[10:40:38] Bot removal: newest processing bot is destroyed and its order returns to PENDING.
+[10:08:28] Frontend MVP verified by build/test scripts.
+[10:08:28] Implementation path: Frontend (Vite + React + TypeScript).
+[10:08:28] Supported actions: New Normal Order, New VIP Order, + Bot, - Bot.
+[10:08:28] Supported flow: PENDING -> PROCESSING by cooking bot -> COMPLETE after 10 seconds.
+[10:08:28] VIP priority: VIP orders queue before normal orders while keeping FIFO order within each type.
+[10:08:28] Bot removal: newest processing bot is destroyed and its order returns to PENDING.
 
 Run locally with: npm run dev
 Build output directory: dist
